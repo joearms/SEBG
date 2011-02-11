@@ -1,13 +1,13 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-11 18:12:19 joe>
+%% Time-stamp: <2011-02-11 19:47:32 joe>
 
 -module(svg_demo).
 
 -compile(export_all).
 
 start(Pid) ->
-    elib1_misc:random_seed(),
+    random_seed(),
     put(pid, Pid), %% Ok since we'll never change this
     init(),
     spawn(fun() -> put(pid,Pid),random_seed(), push() end),
