@@ -1,0 +1,18 @@
+SEBG stands for
+
+Simple Erlang Browser Graphics
+
+Read index.html for documentation
+
+To run type make
+
+Notes: 
+
+ 1) You need a web socket enabled browser
+ 2) Only tested on mac os-x
+
+Author: Joe Armstrong
+
+Contributions:
+
+   Sergio Veiga -- websocket hadshake code

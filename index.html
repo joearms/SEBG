@@ -1,0 +1,260 @@
+<style>
+
+body {margin-left:100px; width:70%}
+
+</style>
+<title>Simple Erlang Browser Graphics</title>
+<h2>SEBG</h2>
+
+<p>Simple Erlang Browser Graphics
+
+<p>Using web sockets and SVG and a bit of Javascript it is pretty easy
+to make an impressive GUI in a a few hundred lines of code.
+
+<p>This example contains a complete web server, which supports
+web-sockets and shows how to interface web-sockets with jquery and
+the Raphael SVG javascript library. Using this we make a simple
+interactive graphics demo program.
+
+<p><font color="red">Note: This is known to work with Google Chrome and Safari
+browsers on Mac OS-X and with Chromium on Ubuntu. It does not work with
+Firefox. Other browsers are untested</font></p>
+
+<p>The code here is also intended an an intermediate example for new
+Erlang programmers to study and extend. The code is entirely
+self-contained, there are no dependence on any other modules, so you
+don't need to know about OTP applications or generic servers or
+anything. As such it is suitable for a beginner and for self-study.
+
+<p>I have also included a number of suggestions for small projects
+based on this code. We often get questions asking for suggestions for
+projects that are suitable for learning Erlang. I have added a <a
+href="#problems">list of possible projects</a> based on this code at
+the end of this page.
+ 
+
+<p><i>If you are running on mac os-x then all you have to do is type
+make. On other platforms start erlang, give the command
+<b>segb:start()</b> in the shell. Then view the page
+<a href="http://localhost:1234/index.html">http://localhost:1234/index.html
+</a> in your browser.</i>
+
+<p>Once you have started the brower
+click on <p><a
+href="http://localhost:1234/generic.html">http://localhost:1234/generic.html</a>
+
+<p>In the page <b>generic.html</b> click on the <b>start_simulation</b>
+link. You should see a red draggable circle, a blue clickable rectangle and
+a number of randomly generated colored rectangles. The colored rectangles
+are being pushed to the browser through the web socket.
+
+<p>Actually what gets pushed is a fragment of Javascript. The Javascript 
+in the browser just waits for a Javascript fragment, evaluates it,
+then waits for the next fragment. It's very easy to understated.
+
+<h2>Websockets</h2>
+
+<p>The server itself is a small 300 line program that communicates
+with a web socket. Once a web socket has been opened the web server
+spawns a handler process to communicate with the web socket and turns
+itself into a web socket middleman.
+
+<p>The handler process sends javascript expression to the web
+socket. At the client end of the web socket (ie in the server) all we
+do is a javascript <b>eval</b> of the data received from the web
+socket. The server acts as a middle man taking cars or the framing
+protocol between the browser and the server.
+
+<p>The client page in the server in in a sense "universal." All it has
+is the ability to execute code, which comes in the form of javascript
+messages.
+
+<p>In practise this is somewhat inconvenient. So instead of being
+entire universal and only opening a socket and eval'ing data it
+receives. The client does a few more thing.  It turns the web page red
+if the socket connection is broken, and it preloads the jquery. jquery
+is so useful that I consider it to almost be a part of javascriopt.
+
+<p>The handler process <b>svg_demo.erl</b> shows how to communicate with
+the browser.  The first thing </b>svg_demo.erl</b> does, is to send a
+request to load the Javascript library <b>raphael-min.js</b>. Raphael
+is a <a href="http://raphaeljs.com/reference.html">well
+documented</a> javascript SVG library.
+
+<p>Having loaded Raphael. I create a draggable circle, and a clickable
+blue box.  Nothing fancy. I deliberately don't want to make the
+example too complicated.  You should at this stage be able to read and
+understand <b>svg_demo.erl</b> and <b>sebg.erl</b> in their
+entirely.</p>
+
+<p>Using websockets, we can create a direct message passing channel
+between Erlang and a web server. Once the channel is established we
+can asynchronous messages between the an Erlang process and a browser
+window. Sending these message has a tidy overhead of 2 bytes per
+message.
+
+<p>This demo has only two Erlang modules. <a
+href="sebg.erl">sebg.erl</a> and <a
+href="svg_demo.erl">svg_demo.erl</a>. The example is completely
+self-contain, so makes no use of any Erlang libaries at all.
+
+<p>The work flow is:</p>
+
+<ol>
+
+<li>Start a web server.
+
+<li>Load a single web page <b>generic.html</b>
+
+<li><b>generic.html</b> requests a web-socket connection to the Erlang web server.
+
+<li>When the javascript <b>generic.html</b> has established a web socket
+it then changes it's mode of operation, waiting for messages on the web socket.
+
+<li>Each message is assumed to contain a javascript expression.
+
+<li>All the generic web page does is to <b>eval</b> the java script expressions 
+received from the web socket.
+</ol>
+
+The crucial code in the generic web page is the part which sets up the
+web socket. This code was inspired by the example taken from the
+examples at <a href="http://websocket.org">http://websocket.org</a>
+
+<pre>
+<b>
+   function start_session(mod){
+	websocket = new WebSocket(wsUri); 
+	websocket.onopen = function(evt) { onOpen(evt, mod) }; 
+	websocket.onclose = function(evt) { onClose(evt) }; 
+	websocket.onmessage = function(evt) { onMessage(evt) }; 
+	websocket.onerror = function(evt) { onError(evt) };
+	return(false);
+    }  
+
+    function onOpen(evt, mod) { 
+	websocket.send("start:" + mod + ":");
+    }
+
+    function onClose(evt) { 
+	$("body").css({'background-color':'red'});
+    }  
+
+    function onMessage(evt) {
+	{
+	    eval(evt.data);
+	}
+
+</b>
+</pre>
+
+<h2>Notes</h2>
+
+One small detail of the code that might not be obvious:
+
+<p>Variables created within an javascript eval are not exported.  So
+if we say <b>eval("var x = ...");</b> the the scope of <b>x</b> is
+limited to within the eval. For this reason a global array <b>glob</b>
+is defined outside the scope of the function performing the <b>eval</b>.
+
+We define <b>glob</b> as follows:
+
+<p><b>var glob = new Array();</b>
+
+<p>To persist a variable outside the scope of eval we can
+evaluate: <b>eval('var glob[Name] = ...');</b> since <b>glob</b> is
+defined outside of the scope of eval its value will be persisted
+outside the scope of eval.
+
+<h2>The Handler API</h2>
+
+<p>Writing a handler is trivial. Use the following pattern:
+<pre>
+<b>
+-module(myhandler).
+-export([start/1]).
+
+start(Pid) ->
+    init(Pid), 
+    loop(Pid).
+
+loop(Pid) ->
+    receive
+       {browser, N, Str} ->
+           ...
+           loop(Pid)
+    end.
+</b></pre>
+<p>
+Then launch the handler by filling in the name in the generic web
+page.  <i>The handlers is always started by the borwser.</i></p>
+
+<p>In the above code <b>Pid</b> is a process that represents the
+brower.
+
+<p><b>Pid ! {send, Msg}</b> sends <b>Msg</b> to the
+browser. <b>Msg</b> must contain a valid Javascript expression which
+is evaluated in the browser.
+
+<p>Javascript code executing in the browser can evaluate the Javascript
+function <b>send(Str)</b> this will emerge as a <b>{browser,N,Str}</b>
+message in the handler.  <b>N</b> is a sequence number that increases
+by one for every message sent.
+
+
+<a name="problems"></a>
+<h2>Exercises</h2>
+
+<p>Here are few suggestions for improvements and exercises.
+
+<ol>
+
+<li>Make the start script <b>openchome</b> generic so it works on
+all platforms.
+
+<li>Add native controls to the Raphael canvas, controls like
+buttons entries etc.
+
+<li>Make a simulated canvas button in Raphael. When you press the button it 
+should change color and send an event to Erlang. Attach an Erlang fun to the button
+so that the fun is evaluated when then then button is clicked.
+
+<li>Write a chat client and server.
+
+<li>Write a performance monitor. You'll need to call the bif
+<b>processes()</b> every few seconds, and then call process_info(Pid,
+...) om all processes to collect the relevant information.
+
+<p>Stare at the code for the function <b>etop_collect/2</b> in the
+module <b>observer_backend.erl</b> which you will find in the standard
+distribution.  <p>Note: cut pates and minimise the code you need from
+the library, don't just call the library cut and paste when you need
+and understand every line.</p>
+
+<li>Write a chat widget like interface to the system. Assume that the
+users that pop up in the right hand users tab of a chat widget are
+global processes.  Use the entry in the chat lib to connect to and
+send message to a global process.  Write a gen server that is
+controlled from a chat widget, so that it appears like a person that
+you chat to.
+
+<li>Interface the <a href="http://thejit.org/demos">InfoVis</a>
+library to the system. Compute an xref graph of the Erlang module
+structure (hint use <b>xref.erl</b>) and display it with one of the
+methods in VisLib.
+
+<li>Write a parser for GedCom (look it up) interface with InfoVis
+
+<li>Add JSON support. 
+
+<li>Make a plugin for google chrome what works with web
+sockets. Extend the message passing to cross-tab messaging, so Erlang
+can send an receive messages to any tab.  <li>Download the chrome
+plugin called "snippy" stare at the code. With snippy you can grab
+fragments of a web page. Modify snippy (or write your own extension)
+that can grab a portion of a web page and send it to a web
+socket. Make a database at the end of the web socket to store and
+analyse the data.
+
+</ul>
+

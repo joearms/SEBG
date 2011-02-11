@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# an OS independent way to open a URL in a browser
+
+os=`uname`
+
+echo "starting $1"
+
+case $os in
+    Linux)
+        firefox $1;;
+    Darwin)
+	open -a 'Google Chrome' $1;;
+    *)
+        echo unknown OS $os;;
+esac
