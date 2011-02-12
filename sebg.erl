@@ -1,6 +1,6 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-11 18:28:38 joe>
+%% Time-stamp: <2011-02-12 10:47:42 joe>
 
 -module(sebg).
 
@@ -59,9 +59,9 @@ next_request(Socket) ->
 %%    of characters.  For example, the string "Hwllo " has 13 Unicode code
 %%    points, but is 21 bytes long.
 
-do_request(Socket, {{get, {abs_path,"/connect"}}, L}) ->
+do_request(Socket, {{get, {abs_path,"/connect" ++ _=Path}}, L}) ->
     io:format("~p is now a web socket~n",[Socket]),
-    connect(Socket, "/connect", L);
+    connect(Socket, Path, L);
 do_request(Socket,{{get,{abs_path,F0}}, _}) ->
     io:format("Here 1F=~p~n",[F0]),
     {F, Args} = parse_uri(F0),
@@ -131,30 +131,21 @@ connect(Socket, Path, Headers) ->
     io:format("Response:~p~n",[Response]),
     gen_tcp:send(Socket, Response),
     inet:setopts(Socket, [{packet, raw}, {active, true}]),
-    handshake(Socket, []).
+    Pid = start_session(Path),
+    mm(Socket, Pid, [], 0, 0).
 
-handshake(Socket, L) ->
-    receive
-	{tcp,Socket,Str} ->
-	    io:format("got:~p~n",[Str]),
-	    Pid = start_session(Str),
-	    io:format("** do this properly later with unframemigh miss some data fix this ...~n"),
-	    mm(Socket, Pid, [], 0, 0);
-	{tcp_closed, Socket} ->
-	    io:format("Websocket ~p session ended~n",[Socket]);
-	Any ->
-	    io:format("??raw:~p~n",[Any]),
-	    handshake(Socket, L)
-	after 2000 ->
-		true
-    end.
+start_session("/connect/" ++ ModStr) ->
+    io:format("start session=~p~n",[ModStr]),
+    Mod = list_to_atom(ModStr),
+    S = self(),
+    spawn_link(fun() -> Mod:start(S) end).
 
 mm(Socket, Pid, Buff, Rec, Sent) ->
     receive
 	{tcp, Socket, Str} -> 
 	    {Buff1, Rec1} = handle(Pid, Str, Buff, Rec),
 	    mm(Socket, Pid, Buff1, Rec1, Sent);
-	{send, Msg} ->
+	{eval, Msg} ->
 	    gen_tcp:send(Socket,[0,Msg,255]),
 	    %% io:format("sent:~p~n ~s~n",[Msg,Msg]),
 	    mm(Socket, Pid, Buff, Rec, Sent+1);
@@ -177,14 +168,6 @@ handle(Pid, [H|T], Buff, N) ->
 handle(_Pid, [], Buff, N) ->
     {Buff, N}.
 
-start_session("\000start:" ++ T) ->
-    io:format("T=~p~n",[T]),
-    [Mod|_] = string:tokens(T,":"),
-    AMod = list_to_atom(Mod),
-    S = self(),
-    spawn_link(fun() -> AMod:start(S) end);
-start_session(X) ->
-    io:format("nomatch:~p~n",[X]).
 
 %% Description: Builds the challenge for a handshake response.
 %% Code portions from 

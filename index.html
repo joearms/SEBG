@@ -1,12 +1,71 @@
+<script type="text/javascript" src="./generic.js"></script>  
+
 <style>
 
 body {margin-left:100px; width:70%}
+pre { border:1 px solid black;
 
 </style>
 <title>Simple Erlang Browser Graphics</title>
+
 <h2>SEBG</h2>
 
-<p>Simple Erlang Browser Graphics
+<p>This code is changing rapidly. Always get the latest verions from
+<a href="https://github.com/joearms/SEBG">https://github.com/joearms/SEBG</a>
+
+<h2>Some code</h2>
+<pre><b>
+-module(demo1).
+-export([start/1]).
+
+start(Pid) ->
+    Pid ! {eval, "document.body.innerHTML='';"},
+    Pid ! {eval, "document.body.style.backgroundColor='#eeffaa';"},
+    Pid ! {eval, "document.body.innerHTML+='&lt;h1>Hello World&lt;/h1>'"},
+    event_loop(Pid).
+
+event_loop(Pid) ->
+    receive
+	Any ->
+	    io:format("??event loop:~p~n",[Any]),
+	    event_loop(Pid)
+    end.
+  </b>
+</pre>
+
+<a href="#" 
+  onclick="start_session('ws://127.0.0.1:1234/connect/demo1')">run the above code</a>
+
+
+
+<h2>Demos</h2>
+
+<ul>
+<li>
+<a href="#" 
+  onclick="start_session('ws://127.0.0.1:1234/connect/demo1')">demo1</a>
+  send javascript from Erlang to the browser. The page will change color and some text will appear.
+<li>
+<a href="#" 
+  onclick="start_session('ws://127.0.0.1:1234/connect/demo2')">demo2</a>
+send commands from the browser to erlang
+
+<li>
+<a href="#" 
+  onclick="start_session('ws://127.0.0.1:1234/connect/demo3')">demo3</a>
+Full both way communication
+
+<li>
+<a href="#" 
+  onclick="start_session('ws://127.0.0.1:1234/connect/raphael')">raphael</a>
+Load the Raphael SV library and jquery and have some fun.
+
+</ul>
+
+<h2>log</h2>
+<div id="log"></div>
+
+<h2>Simple Erlang Browser Graphics</h2>
 
 <p>Using web sockets and SVG and a bit of Javascript it is pretty easy
 to make an impressive GUI in a a few hundred lines of code.
@@ -42,6 +101,10 @@ make. On other platforms start erlang, give the command
 <p>Once you have started the brower
 click on <p><a
 href="http://localhost:1234/generic.html">http://localhost:1234/generic.html</a>
+
+<p>Or:
+<p><a
+href="http://localhost:1234/min.html">http://localhost:1234/min.html</a>
 
 <p>In the page <b>generic.html</b> click on the <b>start_simulation</b>
 link. You should see a red draggable circle, a blue clickable rectangle and
@@ -147,24 +210,6 @@ examples at <a href="http://websocket.org">http://websocket.org</a>
 
 </b>
 </pre>
-
-<h2>Notes</h2>
-
-One small detail of the code that might not be obvious:
-
-<p>Variables created within an javascript eval are not exported.  So
-if we say <b>eval("var x = ...");</b> the the scope of <b>x</b> is
-limited to within the eval. For this reason a global array <b>glob</b>
-is defined outside the scope of the function performing the <b>eval</b>.
-
-We define <b>glob</b> as follows:
-
-<p><b>var glob = new Array();</b>
-
-<p>To persist a variable outside the scope of eval we can
-evaluate: <b>eval('var glob[Name] = ...');</b> since <b>glob</b> is
-defined outside of the scope of eval its value will be persisted
-outside the scope of eval.
 
 <h2>The Handler API</h2>
 
