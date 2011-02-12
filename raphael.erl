@@ -1,35 +1,63 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-11 19:47:32 joe>
+%% Time-stamp: <2011-02-12 11:55:07 joe>
 
--module(svg_demo).
+-module(raphael).
 
 -compile(export_all).
 
 start(Pid) ->
     random_seed(),
     put(pid, Pid), %% Ok since we'll never change this
-    init(),
-    spawn(fun() -> put(pid,Pid),random_seed(), push() end),
+    init(Pid),
+    %% spawn(fun() -> put(pid,Pid),random_seed(), push() end),
     event_loop(Pid).
 
-init() ->
-    clear_page(),
-    set_page_color("#ffffaa"),
-    load_js("raphael-min.js"),
+init(Pid) ->
+%%     clear_page(),
+%%     set_page_color("#ffffaa"),
+    load_js(Pid, "raphael-min.js"),
+    load_js(Pid, "jquery-1.5.min.js"),
+    Pid ! {eval,"document.body.innerHTML=''"},
+    Pid ! {eval, "document.body.style.backgroundColor='orange';"},
     mk_div("canvas"),
     mk_div("log"),
-    cmd("logit('hello')"),
-    cmd("glob[1]=Raphael('canvas',800,500)"),
-    cmd("glob[1].image('joeold.jpg', 100, 100, 200, 300);"),
-    cmd("glob[1].text(100,10,'red circle is draggble, blue box is clickable');"),
-    cmd("glob[2]=glob[1].circle(320,240,60);"),
-    cmd("glob[2].attr('fill','red');"),
-    cmd("glob[2].drag(move,start,up);"),
-    cmd("glob[3]=glob[1].rect(40,40,50,50,10);"),
-    cmd("glob[3].attr('fill','blue');"),
-    cmd("glob[3].node.onclick= function(){send('click 3');};").
+    %% cmd("logit('hello')"),
+    cmd("c=Raphael('canvas',800,500)"),
+    cmd("r=c.circle(320,240,60);"),
+    cmd("c.image('joeold.jpg', 500, 50, 294, 195);"),
+    cmd("c.text(100,10,'red circle is draggble, blue box is clickable');"),
+    cmd("r.attr('fill','red');"),
+    cmd(drag_code()),
+    cmd("r.drag(move,start,up);"),
+    cmd("b=c.rect(40,40,50,50,10);"),
+    cmd("b.attr('fill','blue');"),
+    cmd("b.node.onclick= function(){send('click 3');};").
+    
 
+drag_code() ->
+    <<"    start = function(){
+
+	this.ox = this.attr('cx');
+	this.oy = this.attr('cy');
+	this.attr({opacity: 1});
+    }
+    
+    move = function (dx, dy) {
+	// move will be called with dx and dy
+	this.attr({cx: this.ox + dx, cy: this.oy + dy});
+    },
+    
+    up = function () {
+	// alert('stop');
+	// restoring state
+	this.attr({opacity: .5});
+    };
+    ">>.
+   
+
+
+    
 event_loop(Pid) ->
     receive
 	Any ->
@@ -79,12 +107,13 @@ fmt(I) ->
 mk_div(Id) ->
     cmd(["$('body').prepend('<div id=\"",Id,"\"></div>');"]).
 
-load_js(File) ->
+load_js(Pid, File) ->
     %% jQuery magic :-)
-    cmd(["$.getScript('./",File,"',function(){send('ack');});"]),
+    cmd(["loadScript('",File,"');"]),
     %% wait for the script to run
     receive
-	{browser,_,"ack"} ->
+	{browser,_,"loaded"} ->
+	    io:format("script loaded~n"),
 	    true
     after 10000 ->
 	    io:format("timeout loading:~p~n",[File])
@@ -96,7 +125,8 @@ mkCanvas(Tag, Color, Width, Ht) ->
 	i2s(Width),"\" height=\"", i2s(Ht),"\"></canvas>');"]).
 
 cmd(Msg) ->
-    get(pid) ! {send, Msg}.
+    io:format("eval:~s~n",[Msg]),
+    get(pid) ! {eval, Msg}.
     
 msg(Pid) ->
     Pid ! {send, bgColor("#ffaacc")}.
