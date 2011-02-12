@@ -1,0 +1,76 @@
+Two beautiful programs
+
+For a long time one of my favorite Erlang program was this:
+
+loop() ->
+    receive
+        F -> F(),
+	loop()
+    end.
+
+It's nice because it does very little, but what is does is universal. It
+enables mobile code.
+
+Well now I can do this in Javascript.
+
+The Javascript equivalent is:
+
+   function onMessage(evt) {
+      eval(evt.data);
+   }
+
+Where the data comes from a websocket.
+
+Websockets are controlled with a simple API:
+
+      websocket = new WebSocket(wsUri); 
+      websocket.onopen = function(evt) { onOpen(evt) }; 
+      websocket.onclose = function(evt) { onClose(evt) }; 
+      websocket.onmessage = function(evt) { onMessage(evt) }; 
+
+Linking a websocket and Erlang is pretty easy. So now I can write code like this in
+erlang
+
+-module(demo1).
+-export([start/1]).
+
+start(Pid) ->
+    Pid ! {eval, "document.body.innerHTML='';"},
+    Pid ! {eval, "document.body.style.backgroundColor='#eeffaa';"},
+    Pid ! {eval, "document.body.innerHTML+='<h1>Hello World</h1>'"},
+    event_loop(Pid).
+
+event_loop(Pid) ->
+    receive
+	Any ->
+	    io:format("??event loop:~p~n",[Any]),
+	    event_loop(Pid)
+    end.
+
+This code pushes asynchronous messages containing javascript to a generic
+web page, and the web page evals the result.
+
+This technique is amazingly powerful.
+
+So now I only need one generic web page. Think of that.
+
+Only one page is needed - forever.
+
+All the genric pages does is:
+
+loop:
+   wait for a message containing Javascript
+   eval the message
+
+Beautiful
+
+This is the easiest way to program a GUI I can conceive of.
+
+You can download and run the examples from:
+
+<a href="https://github.com/joearms/SEBG">https://github.com/joearms/SEBG</a>
+   
+You'll need something like Google chrome to run them.
+
+Have fun
+
