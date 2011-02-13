@@ -1,6 +1,6 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-12 10:47:42 joe>
+%% Time-stamp: <2011-02-13 15:36:57 joe>
 
 -module(sebg).
 
@@ -37,7 +37,7 @@ par_connect(Listen) ->
     case gen_tcp:accept(Listen) of
 	{ok, Socket} ->
 	    spawn(fun() -> par_connect(Listen) end),
-	    io:format("starting a new session sockt=~p~n",[Socket]),
+	    io:format("starting a new session socket=~p~n",[Socket]),
 	    next_request(Socket);
 	Other ->
 	    io:format("par_connect:Other=~p ~p~n",
@@ -45,9 +45,9 @@ par_connect(Listen) ->
     end.
 
 next_request(Socket) ->
-    io:format("Session ~p waiting~n",[Socket]),
+    %% io:format("Session ~p waiting~n",[Socket]),
     Req = get_request(Socket,no,[]),
-    io:format("req=~p~n",[element(1,Req)]),
+    %% io:format("req=~p~n",[element(1,Req)]),
     do_request(Socket, Req).
 
 %%    Data is sent in the form of UTF-8 text.  Each frame of data starts
@@ -63,20 +63,20 @@ do_request(Socket, {{get, {abs_path,"/connect" ++ _=Path}}, L}) ->
     io:format("~p is now a web socket~n",[Socket]),
     connect(Socket, Path, L);
 do_request(Socket,{{get,{abs_path,F0}}, _}) ->
-    io:format("Here 1F=~p~n",[F0]),
+    %% io:format("Here 1F=~p~n",[F0]),
     {F, Args} = parse_uri(F0),
     File = case F of
 	       "//" ++ F1 -> "/" ++ F1;
 	       "/" ++ F1 -> "./" ++ F1;
 	       _   ->  "./" ++ F
 	   end,
-    io:format("Session ~p wants:~p Args=~p~n",[Socket,File,Args]),
+    %% io:format("Session ~p wants:~p Args=~p~n",[Socket,File,Args]),
     Response = case file:read_file(File) of
 		   {ok, Bin} ->
-		       io:format("sending file~n"),
+		       io:format("sending file:~p~n",[File]),
 		       make_response(classify(File),[Bin]);
 		   _ ->
-		       io:format("missing file~n"),
+		       io:format("missing file:~p Args:~p~n",[File,Args]),
 		       make_response(html,pre({nosuchfile,F}))
 	       end,
     gen_tcp:send(Socket, Response),
@@ -100,7 +100,7 @@ get_request(Socket,X,L) ->
     end.
 
 connect(Socket, Path, Headers) ->
-    io:format("Headers=~p~n",[Headers]),
+    %% io:format("Headers=~p~n",[Headers]),
     Origin = proplists:get_value("Origin", Headers),
     Host = proplists:get_value('Host', Headers),
     Key1 = proplists:get_value("Sec-Websocket-Key1",Headers, none),
@@ -128,14 +128,14 @@ connect(Socket, Path, Headers) ->
 	 "Sec-WebSocket-Location: ws://", lists:concat([Host, Path]), "\r\n\r\n",
 	 Challenge
 	],
-    io:format("Response:~p~n",[Response]),
+    %% io:format("Response:~p~n",[Response]),
     gen_tcp:send(Socket, Response),
     inet:setopts(Socket, [{packet, raw}, {active, true}]),
-    Pid = start_session(Path),
+    Pid = start_session(Socket, Path),
     mm(Socket, Pid, [], 0, 0).
 
-start_session("/connect/" ++ ModStr) ->
-    io:format("start session=~p~n",[ModStr]),
+start_session(Socket, "/connect/" ++ ModStr) ->
+    io:format("Handler in module ~p connected to socket ~p~n",[ModStr, Socket]),
     Mod = list_to_atom(ModStr),
     S = self(),
     spawn_link(fun() -> Mod:start(S) end).
