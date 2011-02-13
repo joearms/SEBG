@@ -5,8 +5,7 @@ var logdiv;
 
 window.onload = 
     function() {
-	logdiv = document.getElementById('log');
-	log('<p>started');
+	console.log('<p>started');
     }
 
     function loadScript(File) {
@@ -18,7 +17,7 @@ window.onload =
   }
 
   function onClose(evt) {
-      log('<p><b>closed</b>');
+      console.log('<p><b>closed</b>');
       document.body.style.backgroundColor='#aabbcc';
   }  
   
@@ -46,7 +45,7 @@ window.onload =
   }
   
   function start_session(wsUri){
-      log("<br>try to connect");
+      console.log("<br>try to connect");
       document.body.style.backgroundColor='#ccaabb';
       websocket = new WebSocket(wsUri); 
       websocket.onopen = function(evt) { onOpen(evt) }; 
@@ -57,6 +56,6 @@ window.onload =
     }  
     
     function onOpen(evt) { 
-	log("connected");
+	console.log("connected");
     }
 

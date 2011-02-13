@@ -14,6 +14,10 @@ pre { border:1 px solid black;
 <a href="https://github.com/joearms/SEBG">https://github.com/joearms/SEBG</a>
 
 <h2>Some code</h2>
+
+<p>This is a minimal code example. First you need an Erlang handler, for example,
+<b>demo1.erl</b> which is as follows:
+
 <pre><b>
 -module(demo1).
 -export([start/1]).
@@ -33,12 +37,41 @@ event_loop(Pid) ->
   </b>
 </pre>
 
+<p>Then you need to some browser code to launch the example. 
+A minimal code fragment to launch the example is:
+<pre>
+<b>
+&lt;script type="text/javascript" src="./generic.js">&lt;/script>  
+
+&lt;a href="#" 
+  onclick="start_session('ws://127.0.0.1:1234/connect/demo1')">demo1&lt;/a>
+</b>
+</pre>
+
 <a href="#" 
   onclick="start_session('ws://127.0.0.1:1234/connect/demo1')">run the above code</a>
 
+<hr>
 
+<h3>Running the demos on all platforms</h3>
 
-<h2>Demos</h2>
+<ol>
+<li>Make sure you have a websockets enabled browser.
+<li>Compile all the Erlang programs in this directory, with the
+command <b>erlc *.erl</b>
+<li>Start an Erlang shell
+<li>Give the command <b>sebg:start().</b> in the shell.
+<li>View the page <b>index.html</b> in your browser.
+</ol>
+
+<h3>Running the demos on Mac OS-X</h3>
+<p>Type <b>make</b>
+
+<hr>
+
+<h3>The Demos</h3>
+
+<p>Once you have a server running, click on any of the links below:
 
 <ul>
 <li>
@@ -61,9 +94,46 @@ Full both way communication
 Load the Raphael SV library and jquery and have some fun.
 
 </ul>
+<hr>
 
-<h2>log</h2>
-<div id="log"></div>
+<h2>The Handler API</h2>
+
+<p>Writing a handler is trivial. Use the following pattern:
+<pre>
+<b>
+-module(myhandler).
+-export([start/1]).
+
+start(Pid) ->
+    init(Pid), 
+    loop(Pid).
+
+loop(Pid) ->
+    receive
+       {browser, N, Str} ->
+           ...
+           loop(Pid)
+    end.
+</b></pre>
+<p>
+Then launch the handler by from the browser by evaluating the
+javascript command <b>start_session('ws://127.0.0.1:1234/connect/myhandler')</b>
+The <b>start_session</b> command is defined in <b>generic.js</b>
+
+
+<p>In the above code <b>Pid</b> is a process that represents the
+brower.
+
+<p><b>Pid ! {send, Msg}</b> sends <b>Msg</b> to the
+browser. <b>Msg</b> must contain a valid Javascript expression which
+is evaluated in the browser.
+
+<p>Javascript code executing in the browser can evaluate the Javascript
+function <b>send(Str)</b> this will emerge as a <b>{browser,N,Str}</b>
+message in the handler.  <b>N</b> is a sequence number that increases
+by one for every message sent.
+
+<hr>
 
 <h2>Simple Erlang Browser Graphics</h2>
 
@@ -91,25 +161,16 @@ projects that are suitable for learning Erlang. I have added a <a
 href="#problems">list of possible projects</a> based on this code at
 the end of this page.
  
-
 <p><i>If you are running on mac os-x then all you have to do is type
 make. On other platforms start erlang, give the command
 <b>segb:start()</b> in the shell. Then view the page
 <a href="http://localhost:1234/index.html">http://localhost:1234/index.html
 </a> in your browser.</i>
 
-<p>Once you have started the brower
-click on <p><a
-href="http://localhost:1234/generic.html">http://localhost:1234/generic.html</a>
+<h2>A Minimal Example</h2>
 
-<p>Or:
-<p><a
-href="http://localhost:1234/min.html">http://localhost:1234/min.html</a>
+<p>For a minimal example see <a href="http://localhost:1234/generic.html">http://localhost:1234/generic.html</a>
 
-<p>In the page <b>generic.html</b> click on the <b>start_simulation</b>
-link. You should see a red draggable circle, a blue clickable rectangle and
-a number of randomly generated colored rectangles. The colored rectangles
-are being pushed to the browser through the web socket.
 
 <p>Actually what gets pushed is a fragment of Javascript. The Javascript 
 in the browser just waits for a Javascript fragment, evaluates it,
@@ -210,42 +271,6 @@ examples at <a href="http://websocket.org">http://websocket.org</a>
 
 </b>
 </pre>
-
-<h2>The Handler API</h2>
-
-<p>Writing a handler is trivial. Use the following pattern:
-<pre>
-<b>
--module(myhandler).
--export([start/1]).
-
-start(Pid) ->
-    init(Pid), 
-    loop(Pid).
-
-loop(Pid) ->
-    receive
-       {browser, N, Str} ->
-           ...
-           loop(Pid)
-    end.
-</b></pre>
-<p>
-Then launch the handler by filling in the name in the generic web
-page.  <i>The handlers is always started by the borwser.</i></p>
-
-<p>In the above code <b>Pid</b> is a process that represents the
-brower.
-
-<p><b>Pid ! {send, Msg}</b> sends <b>Msg</b> to the
-browser. <b>Msg</b> must contain a valid Javascript expression which
-is evaluated in the browser.
-
-<p>Javascript code executing in the browser can evaluate the Javascript
-function <b>send(Str)</b> this will emerge as a <b>{browser,N,Str}</b>
-message in the handler.  <b>N</b> is a sequence number that increases
-by one for every message sent.
-
 
 <a name="problems"></a>
 <h2>Exercises</h2>
