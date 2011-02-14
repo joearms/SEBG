@@ -47,11 +47,11 @@ window.onload =
   function start_session(wsUri){
       console.log("<br>try to connect");
       document.body.style.backgroundColor='#ccaabb';
-      websocket = new WebSocket(wsUri); 
-      websocket.onopen = function(evt) { onOpen(evt) }; 
-      websocket.onclose = function(evt) { onClose(evt) }; 
-      websocket.onmessage = function(evt) { onMessage(evt) }; 
-      websocket.onerror = function(evt) { onError(evt) };
+      websocket           = new WebSocket(wsUri); 
+      websocket.onopen    = onOpen;
+      websocket.onclose   = onClose;
+      websocket.onmessage = onMessage; 
+      websocket.onerror   = onError;
       return(false);
     }  
     
