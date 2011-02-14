@@ -60,6 +60,7 @@ key1 = function(evt){
 buttonClicked = function(evt) {
     var x =evt.target;
     x.setAttribute("fill", "orange");
+    send("YES YOU CLICKED ME");
 };
 
 buttonOver = function(evt) {

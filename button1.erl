@@ -1,8 +1,10 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-14 09:49:23 joe>
+%% Time-stamp: <2011-02-14 11:39:29 joe>
 
 -module(button1).
+
+%% First attempt at a button
 
 -compile(export_all).
 
@@ -20,6 +22,7 @@ init(Pid) ->
     load_js(Pid, "jquery-1.5.min.js"),
     Pid ! {eval,"document.body.innerHTML=''"},
     Pid ! {eval, "document.body.style.backgroundColor='orange';"},
+    Pid ! {eval, "document.body.innerHTML='button changes color on hover sends message when clicked, no text yet'"},
     cmd("svg = mk_canvas({width:800, height:200, color:'#ffeecc',id:1});"),
     cmd("c = document.body.appendChild(svg);"),
     cmd("button = mk_rect({});"),
