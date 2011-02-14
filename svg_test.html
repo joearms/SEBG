@@ -17,7 +17,15 @@
 	// can browse this in the log window
 	console.log("pressed",e);
 	console.log("pressed="+e.keyCode+" shift="+e.shiftKey);
-	globstr += String.fromCharCode(cc);
+	if(e.keyCode==8 && globstr.length>0){
+	    globstr = globstr.substring(0, globstr.length-1);
+	} else {
+	    if ( e.shiftKey == true) {
+		globstr += String.fromCharCode(cc);		
+	    } else {
+		globstr += String.fromCharCode(cc+32);		
+	    }
+	};
 	change_text(globstr);
 	return false;
     }
@@ -95,8 +103,6 @@
 	return text;
     };
     
-
-
     change_text = function(x) {
 	text.textContent=x;
     }
@@ -108,6 +114,18 @@
 	c.appendChild(mk_rect({}));
 	text = mk_text({x:250,y:50, size:24, str:"Hello Joe"})
 	c.appendChild(text);
+	var fo = document.createElementNS(svg_ns,"foreignObject");
+	fo.setAttribute("x", 100);
+	fo.setAttribute("y", 100);
+
+	svg.appendChild(fo);
+	var n = document.createElement('input');
+	n.setAttribute('type','button');
+	n.setAttribute('value','click me');
+	n.setAttribute('name','joe');
+	fo.appendChild(n);
+	console.log("fo=",fo);
+	console.log("n=",n);
     }
 
 
@@ -122,7 +140,11 @@
 
 <body>
 <h2>Unsolved Problems</h2>
-When I press backspace I change pages ...
+<ul>
+<li>When I press backspace I change pages ... seems ok now ...
+<li>Code to add a foreign object (button) does not work (why)
+</ul>
+
 <h2>refs</h2>
 <ul>
 <li><a href="http://www.w3.org/TR/SVG/shapes.html#RectElement">rect reference</a>
@@ -132,4 +154,6 @@ kevlindev tutorials</a>
 </ul>
 
 <button onclick="change_text('new')">change text</button>
+
+
 </body>
