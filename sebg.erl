@@ -1,6 +1,6 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-14 14:49:46 joe>
+%% Time-stamp: <2011-02-17 16:25:07 joe>
 
 -module(sebg).
 
@@ -70,7 +70,7 @@ do_request(Socket,{{get,{abs_path,F0}}, _}) ->
 	       "/" ++ F1 -> "./" ++ F1;
 	       _   ->  "./" ++ F
 	   end,
-    %% io:format("Session ~p wants:~p Args=~p~n",[Socket,File,Args]),
+    io:format("Session ~p wants:~p Args=~p~n",[Socket,File,Args]),
     Response = case file:read_file(File) of
 		   {ok, Bin} ->
 		       io:format("sending file:~p~n",[File]),
@@ -207,6 +207,7 @@ mime_type(css)               -> "text/css";
 mime_type(json)              -> "application/json";
 mime_type(swf)               -> "application/x-shockwave-flash";
 mime_type(html)              -> "text/html";
+mime_type(xhtml)             -> "application/xhtml+xml";
 mime_type(xul)               -> "application/vnd.mozilla.xul+xml";
 mime_type(js)                -> "application/x-javascript";
 mime_type(svg)               -> "image/svg+xml";
@@ -223,6 +224,7 @@ classify(FileName) ->
 	".svg"   -> svg;
 	".xul"  -> xul;
 	".html" -> html;
+	".xhtml" -> xhtml;
 	".htm"  -> html;
 	_       -> html
     end.
