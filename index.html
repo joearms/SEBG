@@ -8,15 +8,16 @@ pre { border:1 px solid black;
 </style>
 <title>Simple Erlang Browser Graphics</title>
 
-<h2>Lively</h2>
-
-<a href="http://127.0.0.1:1234/ConnectLivelyToErlang.xhtml">Lively</a>
-
 <h2>SEBG</h2>
 
 <p>This code is changing rapidly. Always get the latest verions from
 <a href="https://github.com/joearms/SEBG">https://github.com/joearms/SEBG</a>
 
+<h2>News</h2>
+<ul>
+  <li>2011-02019 added a <a href="#plugins">google chrome plugin</a>.</li>
+
+</ul>
 <h2>Some code</h2>
 
 <p>This is a minimal code example. First you need an Erlang handler, for example,
@@ -293,7 +294,42 @@ examples at <a href="http://websocket.org">http://websocket.org</a>
 </b>
 </pre>
 
+<a name="plugins">
+<h2>Plugins</h2>
+<p>The directory clipper contains a plugin for goole chrome that 
+talks to the web server. To install this see <a href="clipper/readme.html">Readme</a>.
+
+
+<p>Once installed you can select any region of the current web page you are browsing
+by dragging the mouse over the interesting region. Then click on the extension icon.
+A popup menu appears. You can add a few comments, click on save
+and a message is sent to a little erlang server sebg.erl the server.
+The date extracted from the webpage is put into a snippet file
+for future analysis.
+
+<p>Next steps:
+
+<h3>in the browser</h3>
+
+<p>We need better javascript to extract information on the web page
+make a pluging for firefox etc.</p>
+
+<h3>in the server</h3>
+<ul>
+<li>put the snippets in a database
+<li>analyse snippets for semantic information
+<li>auto classification of snippets
+<li>share snippets with friends
+<li>real time chat about snippets
+<li>organise snippets into sequences (books :-) keeping track of
+     where they came from for crediting the authors
+</ul>
+<p>
+A large amount of assistance is needed here.
+
+
 <a name="problems"></a>
+
 <h2>Exercises</h2>
 
 <p>Here are few suggestions for improvements and exercises.
@@ -351,3 +387,10 @@ analyse the data.
 <h2>References</h2>
 http://www.switchonthecode.com/tutorials/javascript-draggable-elements
 http://billmill.org/static/canvastutorial/bricks.html
+
+<h2>Experiments</h2>
+
+<h2>Lively</h2>
+
+<a href="http://127.0.0.1:1234/ConnectLivelyToErlang.xhtml">Lively</a>
+
