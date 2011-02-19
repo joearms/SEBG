@@ -1,0 +1,85 @@
+<html>
+  <head>
+    <style>
+      body 
+      { 
+      min-width: 420px; 
+      overflow-x: hidden; 
+      font-family: Arial, sans-serif; 
+      font-size: 12px; 
+      }
+      input, textarea { width: 420px; }
+      input#save { font-weight: bold; width: auto; }
+    </style>
+    <script>
+      
+      var text,html;
+
+      // This onPageInfo is called when the content script has been 
+      // injected and returned its results
+      // it builds the form
+      
+      function onPageInfo(o) 
+      { 
+	  document.getElementById("title").value = o.title; 
+	  document.getElementById("url").value = o.url; 
+	  document.getElementById("notes").innerText = "";
+	  text = o.text; // store in global
+	  html = o.html; // store in global
+      } 
+  
+
+
+      // POST the data to the server using XMLHttpRequest
+      function addBookmark(f)
+      {
+          var req = new XMLHttpRequest();
+	  req.open("POST", "http://localhost:1234/mod/addbookmark/", true);
+		
+          var params = 
+	      "title="    + escape(document.getElementById("title").value) + 
+              "&time="    + escape(new Date().toLocaleString()) +
+	      "&text="    + escape(text) +
+	      "&html="    + escape(html) +
+	      "&url="     + escape(document.getElementById("url").value) + 
+              "&notes="   + escape(document.getElementById("notes").value) +
+              "&tags="    + escape(document.getElementById("tags").value);
+          req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+          req.setRequestHeader("Content-length", params.length);
+          req.setRequestHeader("Connection", "close");
+          
+          req.send(params);
+                
+          req.onreadystatechange = function() 
+          { 
+              // If the request completed, close the extension popup
+              if (req.readyState == 4)
+                  if (req.status == 200) window.close();
+          };
+          
+          return false;
+      }
+      
+      // Call the getPageInfo function in the background page, passing in 
+      // our onPageInfo function as the callback
+      window.onload = function() 
+      { 
+          var bg = chrome.extension.getBackgroundPage();
+          bg.getPageInfo(onPageInfo);
+      }
+    </script>
+  </head>
+  <body>
+    <form id="addbookmark" onsubmit="addBookmark(this); return false;">
+      <p><label for="title">Title</label><br />
+      <input type="text" id="title" name="title" size="50" value="" /></p>
+      <p><label for="url">Url</label><br />
+      <input type="text" id="url" name="url" size="50" value="" /></p>
+      <p><label for="notes">Notes</label><br />
+      <textarea id="notes" name="notes" rows="6" cols="35"></textarea></p>
+      <p><label for="tags">Tags</label><br />
+      <input type="text" id="tags" name="tags" size="50" value="" /></p>
+      <p><input id="save" type="submit" value="Save Bookmark" /></p>
+    </form>
+  </body>
+</html>

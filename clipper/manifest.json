@@ -1,0 +1,17 @@
+{
+    "name": "Clipper 1.2",
+    "description": "Clipper release 1 - first production version",
+    "version": "1.2",
+    "background_page": "background.html",
+    "permissions": [
+        "tabs", 
+	"http://localhost:*//*/*",
+        "http://*/*", 
+        "https://*/*"
+    ],
+    "browser_action": {
+        "default_title": "Clipper",
+        "default_icon": "icon.png",
+        "popup": "popup.html"
+    }
+}

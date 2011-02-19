@@ -1,6 +1,6 @@
 %% Copyright (c) 2011 Joe Armstrong
 %% See MIT-LICENSE for licensing information.
-%% Time-stamp: <2011-02-17 16:25:07 joe>
+%% Time-stamp: <2011-02-19 17:12:50 joe>
 
 -module(sebg).
 
@@ -8,7 +8,7 @@
 
 -import(lists, [map/2, reverse/1]).
 
--export([start/0, start/1, test/0]).
+-export([start/0, start/1, test/0, parse_uri_args/1, urlencoded2str/1]).
 
 %% this has been tested run from a makefile not the shell
 
@@ -46,7 +46,8 @@ par_connect(Listen) ->
 
 next_request(Socket) ->
     %% io:format("Session ~p waiting~n",[Socket]),
-    Req = get_request(Socket,no,[]),
+    Req = get_request(Socket),
+    %% io:format("Req=~p~n",[Req]),
     %% io:format("req=~p~n",[element(1,Req)]),
     do_request(Socket, Req).
 
@@ -59,10 +60,15 @@ next_request(Socket) ->
 %%    of characters.  For example, the string "Hwllo " has 13 Unicode code
 %%    points, but is 21 bytes long.
 
-do_request(Socket, {{get, {abs_path,"/connect" ++ _=Path}}, L}) ->
+do_request(Socket, {{post, {abs_path,"/mod/" ++ Str}}, L, Data}) ->
+    %% Str has a trailing "/"
+    Mod = list_to_atom(reverse(tl(reverse(Str)))),
+    Mod:start(Data),
+    gen_tcp:send(Socket, make_response(html,"ok"));
+do_request(Socket, {{get, {abs_path,"/connect" ++ _=Path}}, L, _}) ->
     io:format("~p is now a web socket~n",[Socket]),
     connect(Socket, Path, L);
-do_request(Socket,{{get,{abs_path,F0}}, _}) ->
+do_request(Socket,{{get,{abs_path,F0}}, _, _}) ->
     %% io:format("Here 1F=~p~n",[F0]),
     {F, Args} = parse_uri(F0),
     File = case F of
@@ -71,17 +77,49 @@ do_request(Socket,{{get,{abs_path,F0}}, _}) ->
 	       _   ->  "./" ++ F
 	   end,
     io:format("Session ~p wants:~p Args=~p~n",[Socket,File,Args]),
-    Response = case file:read_file(File) of
-		   {ok, Bin} ->
-		       io:format("sending file:~p~n",[File]),
-		       make_response(classify(File),[Bin]);
-		   _ ->
-		       io:format("missing file:~p Args:~p~n",[File,Args]),
-		       make_response(html,pre({nosuchfile,F}))
-	       end,
+    Response = get_file(File, Args),
     gen_tcp:send(Socket, Response),
     next_request(Socket).
+
+get_file(File, Args) ->
+    case filelib:is_dir(File) of
+	true ->
+	    {ok, Files} = file:list_dir(File),
+	    L = [li(a(File ++ I, I)) || I <- Files],
+	    make_response(html, L);
+	false ->
+	    case file:read_file(File) of
+		{ok, Bin} ->
+		    io:format("sending file:~p~n",[File]),
+		    make_response(classify(File),[Bin]);
+		_ ->
+		    io:format("missing file:~p Args:~p~n",[File,Args]),
+		    make_response(html,pre({nosuchfile,File,Args}))
+	    end
+    end.
+
+li(X) -> ["<li>",X,"</li>"].
+a(A, B) -> ["<a href='",A,"'>",B,"</a>"].
     
+
+get_request(Socket) ->
+    {Req, Headers} = get_request(Socket, no, []),
+    case proplists:get_value('Content-Length', Headers, none) of
+	none ->
+	    {Req, Headers, ""};
+	Val ->
+	    N = list_to_integer(Val),
+	    inet:setopts(Socket, [{packet, raw}, {active, false}]),
+	    Body = case gen_tcp:recv(Socket, N, 30000) of
+		       {ok, Str} -> Str;
+		       {error, timeout} ->
+			   <<>>; 
+		       _Other ->
+			   <<>>
+		   end,
+	    {Req, Headers, Body}
+    end.
+
 get_request(Socket,X,L) ->
     %% io:format("here X=~p L=~p~n",[X,L]),
     R  = gen_tcp:recv(Socket, 0, 30000),
@@ -89,6 +127,8 @@ get_request(Socket,X,L) ->
     case R of
 	{ok, {http_request,'GET',Path,_Vsn}} ->
 	    get_request(Socket,{get, Path},L);
+	{ok, {http_request,'POST',Path,_Vsn}} ->
+	    get_request(Socket,{post, Path},L);
         {ok, {http_header, _, Key, _, Val}} ->
             get_request(Socket, X, [{Key,Val}|L]);
         {ok, http_eoh} ->
@@ -273,15 +313,19 @@ parse_uri_args(Args) ->
 	       end
        end, Args1).
 
-urlencoded2str([$%,Hi,Lo|T]) -> [decode_hex(Hi, Lo)|urlencoded2str(T)];
-urlencoded2str([$+|T])       -> [$ |urlencoded2str(T)];
-urlencoded2str([H|T])        -> [H|urlencoded2str(T)];
-urlencoded2str([])           -> [].
+
+urlencoded2str([$%,$u,A,B,C,D|T]) -> [decode_hex(A,B,C,D)|urlencoded2str(T)];
+urlencoded2str([$%,Hi,Lo|T])      -> [decode_hex(Hi, Lo)|urlencoded2str(T)];
+urlencoded2str([$+|T])            -> [$ |urlencoded2str(T)];
+urlencoded2str([H|T])             -> [H|urlencoded2str(T)];
+urlencoded2str([])                -> [].
 
 %% decode_hex ...
 
-decode_hex(Hex1, Hex2) ->
-    hex2dec(Hex1)*16 + hex2dec(Hex2).
+decode_hex(Hex1, Hex2) -> hex2dec(Hex1)*16 + hex2dec(Hex2).
+
+decode_hex(Hex1, Hex2, Hex3, Hex4) -> 
+    hex2dec(Hex1)*4096 + hex2dec(Hex2)*256 + hex2dec(Hex3)*16 + hex2dec(Hex4).
 
 hex2dec(X) when X >=$0, X =<$9 -> X-$0;
 hex2dec($A) -> 10;
@@ -296,4 +340,5 @@ hex2dec($c) -> 12;
 hex2dec($d) -> 13;
 hex2dec($e) -> 14;
 hex2dec($f) -> 15.
+
 

@@ -5,7 +5,7 @@ var logdiv;
 
 window.onload = 
     function() {
-	console.log('<p>started');
+	//console.log('<p>started');
     }
 
     function loadScript(File) {
