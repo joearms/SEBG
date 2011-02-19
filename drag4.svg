@@ -1,195 +1,200 @@
 <?xml version='1.0' standalone='no'?>
-<!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20001102//EN'
-  'http://www.w3.org/TR/2000/CR-SVG-20001102/DTD/svg-20001102.dtd'>
-<svg width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'
- xmlns:xlink="http://www.w3.org/1999/xlink"
-   onload='Init(evt)'
-   onmousedown='click(evt)'
-   onmousemove='drag(evt)'
-   >
+  <!DOCTYPE svg PUBLIC '-//W3C//DTD SVG 20001102//EN'
+'http://www.w3.org/TR/2000/CR-SVG-20001102/DTD/svg-20001102.dtd'>
+  <svg width='100%' height='100%' xmlns='http://www.w3.org/2000/svg'
+xmlns:xlink="http://www.w3.org/1999/xlink"
+onload='Init(evt)'
+onmousedown='click(evt)'
+onmousemove='drag(evt)'
+onmouseup='release(evt)'
 
-   <title>Rubber banding</title>
+  >
 
-   <desc>
-      Rubber-banding in SVG, Now compute the correct end-points
-   </desc>
-    
-   <defs>
-   
-   <script xlink:href="eos_svg.js" />
-   <script><![CDATA[
+  <title>Rubber banding</title>
 
-      var svgdoc, svgroot;
-      var svgns="http://www.w3.org/2000/svg";
-      var dragging = false;
-      var dragIndex = null;
+  <desc>
+  Rubber-banding in SVG, Now compute the correct end-points
+</desc>
 
-      var node = new Array();
-      node[0] = {x:100, y:200, r:25, text:"one", color:"#ffeeff"};
-      node[1] = {x:220, y:440, r:30, text: "two", color:"#eeeedd"};
-      node[2] = {x:400, y:100, r:40, text:"hello", color:"#ffaaee"};
-      node[3] = {x:450, y:200, r:25, text:"foo", color:"#eeffaf"};
-      node[4] = {x:250, y:100, r:20, text: "bar", color:"pink"};
-      
-      var arc = new Array();
-      arc[0] = {from:0, to:3};
-      arc[1] = {from:2, to:0};
-      arc[2] = {from:3, to:4};
-      arc[3] = {from:1, to:4};
-      arc[4] = {from:2, to:1};
-      arc[5] = {from:2, to:4};
+  <defs>
 
-      function Init(evt)
-      {
-         svgdoc  = evt.target.ownerDocument;
-	 svgroot = svgdoc.rootElement;
-         svgroot = svgdoc.documentElement;
+  <script xlink:href="eos_svg.js" />
+  <script><![CDATA[
 
-	 var i, ep;
-	 for(i=0; i < node.length;i++){
-	     drag_circle(i, node[i].x, node[i].y, node[i].r, 
-			 node[i].color,node[i].text);
-	 };
-	 for(i=0; i < arc.length;i++){
-	     from = arc[i].from;
-	     to = arc[i].to;
-	     x1 = node[from].x;
-	     y1 = node[from].y;
-	     x2 = node[to].x;
-	     y2 = node[to].y;
-	     ep = end_points(x1, y1, node[from].r,
-			     x2, y2, node[to].r);
-	     id = make_line(ep.x1,ep.y1,ep.x2,ep.y2);
-	     arc[i].id = id;
-	 };
+    var svgdoc, svgroot;
+    var svgns="http://www.w3.org/2000/svg";
+    var dragging = false;
+    var dragIndex = null;
+
+    var node = new Array();
+    node[0] = {x:100, y:200, r:25, text:"one", color:"#ffeeff"};
+    node[1] = {x:220, y:440, r:30, text: "two", color:"#eeeedd"};
+    node[2] = {x:400, y:100, r:40, text:"hello", color:"#ffaaee"};
+    node[3] = {x:450, y:200, r:25, text:"foo", color:"#eeffaf"};
+    node[4] = {x:250, y:100, r:20, text: "bar", color:"pink"};
+
+    var arc = new Array();
+    arc[0] = {from:0, to:3};
+    arc[1] = {from:2, to:0};
+    arc[2] = {from:3, to:4};
+    arc[3] = {from:1, to:4};
+    arc[4] = {from:2, to:1};
+    arc[5] = {from:2, to:4};
+
+    function Init(evt)
+    {
+      svgdoc  = evt.target.ownerDocument;
+      svgroot = svgdoc.rootElement;
+      svgroot = svgdoc.documentElement;
+
+      var i, ep;
+      for(i=0; i < node.length;i++){
+        drag_circle(i, node[i].x, node[i].y, node[i].r,
+                    node[i].color,node[i].text);
+      };
+      for(i=0; i < arc.length;i++){
+        from = arc[i].from;
+        to = arc[i].to;
+        x1 = node[from].x;
+        y1 = node[from].y;
+        x2 = node[to].x;
+        y2 = node[to].y;
+        ep = end_points(x1, y1, node[from].r,
+                        x2, y2, node[to].r);
+        id = make_line(ep.x1,ep.y1,ep.x2,ep.y2);
+        arc[i].id = id;
+      };
+    }
+
+    function end_points(x1,y1,r1,x2,y2,r2)
+    {
+	    // line between two circles
+	    var m,a,b,x3,y3,x4,y4;
+	    m = 10; // marker offset
+	    d = Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
+	    b = x1;
+	    a = (x2 - b)/d;
+	    x3 = r1*a + b;
+	    x4 = (d-r2-m)*a + b;
+	    b = y1;
+	    a = (y2 - b)/d;
+	    y3 = (r1)*a + b;
+	    y4 = (d-r2-m)*a + b;
+	    return {x1:x3, y1:y3, x2:x4, y2:y4}
+    }
+
+    function make_line(x1,y1,x2,y2){
+	    var xx=svgdoc.createElementNS(svgns,"line");
+	    xx.setAttribute("x1", x1);
+	    xx.setAttribute("y1", y1);
+	    xx.setAttribute("x2", x2);
+	    xx.setAttribute("y2", y2);
+	    xx.setAttribute("stroke","black");
+	    xx.setAttribute("stroke-width","2px");
+	    xx.setAttribute("fill","black");
+	    xx.setAttribute("marker-end","url(#myMarker)");
+	    svgroot.appendChild(xx);
+	    return xx;
+    }
+
+    function drag_circle(i, x,y,r,col,txt){
+	    var c = svgdoc.createElementNS(svgns,"circle");
+	    c.setAttribute("id","drag"+i);
+	    c.setAttribute("draggable", i.toString());
+	    c.setAttribute("cx",x);
+	    c.setAttribute("cy",y);
+	    c.setAttribute("r",r);
+	    c.setAttribute("fill",col);
+	    c.setAttribute("stroke","black");
+	    c.setAttribute("stroke-width",1);
+
+	    var t = svgdoc.createElementNS(svgns,"text");
+	    t.setAttribute("x", x-r+5);
+	    t.setAttribute("y", y+5);
+	    t.setAttribute("font-size", "20px");
+	    t.setAttribute("draggable", i);
+	    var textNode = document.createTextNode(txt);
+	    t.appendChild(textNode);
+	    svgroot.appendChild(c);
+	    svgroot.appendChild(t);
+	    node[i].textNode=t;
+	    node[i].id = c;
+    }
+
+    function click(evt)
+    {
+      var targetElement = evt.target;
+      var dragTarget = targetElement;
+      dragIndex  = targetElement.getAttribute("draggable");
+      dragging = !dragging;
+
+      if(dragIndex) {
+        if(dragging){
+          node[dragIndex].id.setAttribute("stroke-width", 5);
+          node[dragIndex].id.setAttribute("stroke", "red");
+        }
       }
+    }
 
-      function end_points(x1,y1,r1,x2,y2,r2)
-      {
-	  // line between two circles
-	  var m,a,b,x3,y3,x4,y4;
-	  m = 10; // marker offset
-	  d = Math.sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
-	  b = x1;
-	  a = (x2 - b)/d;
-	  x3 = r1*a + b;
-	  x4 = (d-r2-m)*a + b;
-	  b = y1;
-	  a = (y2 - b)/d;
-	  y3 = (r1)*a + b;
-	  y4 = (d-r2-m)*a + b;
-	  return {x1:x3, y1:y3, x2:x4, y2:y4} 
+    function drag(evt)
+    {
+	    // check that something has been selected
+	    if (dragIndex)
+	    {
+        var i, ep;
+        var x = evt.clientX;
+        var y = evt.clientY;
+        node[dragIndex].id.setAttribute("cx", x);
+        node[dragIndex].id.setAttribute("cy", y);
+        node[dragIndex].x = x;
+        node[dragIndex].y = y;
+        // adjust all arcs
+        for(i=0; i< arc.length; i++){
+          if(arc[i].from == dragIndex || arc[i].to == dragIndex){
+            // adjusting node i
+            ep = end_points(node[arc[i].from].x,
+                            node[arc[i].from].y,
+                            node[arc[i].from].r,
+                            node[arc[i].to].x,
+                            node[arc[i].to].y,
+                            node[arc[i].to].r);
+            arc[i].id.setAttribute("x1", ep.x1);
+            arc[i].id.setAttribute("y1", ep.y1);
+            arc[i].id.setAttribute("x2", ep.x2);
+            arc[i].id.setAttribute("y2", ep.y2);
+
+          };
+        };
+
+        node[dragIndex].textNode.setAttribute("x", x-node[dragIndex].r+5);
+        node[dragIndex].textNode.setAttribute("y", y+5);
+
+	    }
+
+    }
+    function release(evt) {
+      if(dragIndex) {
+        node[dragIndex].id.setAttribute("stroke-width", 1);
+        node[dragIndex].id.setAttribute("stroke", "black");
       }
+      dragging = false;
+      dragIndex = null;
 
-      function make_line(x1,y1,x2,y2){
-	  var xx=svgdoc.createElementNS(svgns,"line");
-	  xx.setAttribute("x1", x1);
-	  xx.setAttribute("y1", y1);
-	  xx.setAttribute("x2", x2);
-	  xx.setAttribute("y2", y2);
-	  xx.setAttribute("stroke","black");
-	  xx.setAttribute("stroke-width","2px");
-	  xx.setAttribute("fill","black");
-	  xx.setAttribute("marker-end","url(#myMarker)");
-	  svgroot.appendChild(xx);
-	  return xx;
-      }
+    }
+  ]]></script>
 
-      function drag_circle(i, x,y,r,col,txt){ 
-	  var c = svgdoc.createElementNS(svgns,"circle");
-	  c.setAttribute("id","drag"+i);
-	  c.setAttribute("draggable", i.toString());
-	  c.setAttribute("cx",x);
-	  c.setAttribute("cy",y);
-	  c.setAttribute("r",r);
-	  c.setAttribute("fill",col);
-	  c.setAttribute("stroke","black");
-	  c.setAttribute("stroke-width",1);
-
-	  var t = svgdoc.createElementNS(svgns,"text");
-	  t.setAttribute("x", x-r+5);
-	  t.setAttribute("y", y+5);
-	  t.setAttribute("font-size", "20px");
-	  t.setAttribute("draggable", i.toString());
-	  var textNode = document.createTextNode(txt);
-	  t.appendChild(textNode);
-	  svgroot.appendChild(c);	  
-	  svgroot.appendChild(t);
-	  node[i].textNode=t;
-	  node[i].id = c;
-      }
-
-      function click(evt)
-      {
-         var targetElement = evt.target;
-	 var dragTarget = targetElement;
-	 dragIndex  = targetElement.getAttribute("draggable");
-	 dragging = !dragging;
-	 if(dragging){
-	     node[dragIndex].id.setAttribute("stroke-width", 5);
-	     node[dragIndex].id.setAttribute("stroke", "red");
-	 } else {
-	     node[dragIndex].id.setAttribute("stroke-width", 1);
-	     node[dragIndex].id.setAttribute("stroke", "black");
-	     
-	     dragIndex = null;
-	 }
-      }
-
-      function drag(evt) 
-      {
-	  // check that something has been selected
-	  if (dragIndex) 
-	  {
-	      var i, ep;
-	      var x = evt.clientX;
-	      var y = evt.clientY;
-	      node[dragIndex].id.setAttribute("cx", x);
-	      node[dragIndex].id.setAttribute("cy", y);
-	      node[dragIndex].x = x;
-	      node[dragIndex].y = y;
-	      // adjust all arcs
-	      for(i=0; i< arc.length; i++){
-		  if(arc[i].from == dragIndex || arc[i].to == dragIndex){
-		      // adjusting node i
-		      ep = end_points(node[arc[i].from].x,
-				      node[arc[i].from].y,
-				      node[arc[i].from].r,
-				      node[arc[i].to].x, 
-				      node[arc[i].to].y, 
-				      node[arc[i].to].r);
-		      arc[i].id.setAttribute("x1", ep.x1);
-		      arc[i].id.setAttribute("y1", ep.y1);
-		      arc[i].id.setAttribute("x2", ep.x2);
-		      arc[i].id.setAttribute("y2", ep.y2);
-
-		  };
-	      };
-	      // adjust the text
-	      var t = node[dragIndex].textNode;
-	      var r = node[dragIndex].r;
-	      t.setAttribute("x", x-r+5);
-	      t.setAttribute("y", y+5);
-	      // t.setAttribute("x", x);
-	      // t.setAttribute("y", y);
-
-	  }
-      }
-      
-   ]]></script>
-
-<marker id="myMarker" viewBox="0 0 10 10" refX="1" refY="5" 
-    markerUnits="strokeWidth" orient="auto"
-    markerWidth="8" markerHeight="6">
-    <polyline points="0,0 10,5 0,10 1,5" fill="darkblue"/>
-</marker>
+  <marker id="myMarker" viewBox="0 0 10 10" refX="1" refY="5"
+markerUnits="strokeWidth" orient="auto"
+markerWidth="8" markerHeight="6">
+  <polyline points="0,0 10,5 0,10 1,5" fill="darkblue"/>
+  </marker>
 
 </defs>
 
-<text x="30" y="30" style="fill: #000; font-size: 24px">Rubber banding - corrects arcs -
-text and color - arrows</text>
+  <text x="30" y="30" style="fill: #000; font-size: 24px">Rubber banding - corrects arcs -
+  text and color - arrows</text>
 
-<text x="30" y="60" style="fill: #000; font-size: 24px">Click and drag on the circles</text>
+  <text x="30" y="60" style="fill: #000; font-size: 24px">Click and drag on the circles</text>
 
 
 </svg>
