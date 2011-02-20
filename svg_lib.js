@@ -95,8 +95,6 @@ mk_text = function(o) {
     return text;
 };
 
-
-
 change_text = function(x) {
     text.textContent=x;
 }

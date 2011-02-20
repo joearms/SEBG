@@ -1,0 +1,52 @@
+<script src="svg.js"></script>
+<script>
+
+  function log(x){
+      document.getElementById("logger").innerHTML += x + "<br>";
+  }
+
+  function test1(){
+      var cmds = 
+	  [
+	      {cmd:"mk_canvas",id:1, width:800, ht:500, color:"#acacac"},
+	      {cmd:"mk_rect", parent:1, id:2, x:10, y:10,
+	       width:100, ht:50, color:"red"},
+	      {cmd:"mk_circle", parent:1, x:30, y:90, r:20, color:"black"},
+	      {cmd:"mk_text", parent:1, x:60, y:160, size:8, str:"Hello",
+	       font:"Times"},
+	      {cmd:"mk_ellipse",parent:1,cx:280,cy:30,rx:40,ry:20,fill:"orange"},
+	      {cmd:"mk_line", parent:1,x1:300,y1:120,x2:350,y2:150},
+	      
+	      {cmd:"mk_group", parent:1,id:2,x:480, y:10},
+	      {cmd:"mk_image", parent:2,x:0,y:0,width:150,ht:150,img:"./p5.jpg"},
+	      {cmd:"mk_rect", parent:2, x:0, y:140, width:150, ht:30, color:"#cccccc"},
+	      {cmd:"mk_text", parent:2, x:20, y:158, size:1, str:"Drag Me"},
+
+	      // make a blue draggable circle
+	      {cmd:"mk_group", parent:1, id:3, x:350, y:25},
+	      {cmd:"mk_circle", parent:3, x:10, y:10, r:15, color:'blue'},
+	      {cmd:"mk_button", parent:1, x:10, y:180, txt:"Button To Click"}
+
+	  ]
+      return cmds;
+  }
+  
+  window.onload = function(){
+      var s = SVG();
+      s.render(test1());
+      document.getElementById("a1").appendChild(s.canvas);
+  }
+    
+</script>
+<body>
+    <h1>Tests</h1>
+    <p>Test of svg library.
+    <h2>Unsolved problems</h2>
+    <li><strike>Can only click in left hand side of "Button to click".</strike>
+    -- added button at end of display list. It was partially obscured by a text object.
+    <h2>Propertis</h2>
+    <li>Blue drag circle</li>
+    <li>Draggable image</li>
+    <div id="a1"></div>
+    <div id="logger"></div>
+</body>

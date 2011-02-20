@@ -3,6 +3,9 @@
 
     document.onkeydown = function(e){update(e);};
 
+    function log(x){
+        document.getElementById("log").innerHTML += x + "</br>";
+    }
 
     var globstr = "Hello World";
     var text;
@@ -15,8 +18,8 @@
     update = function(e) {
 	cc = e.keyCode;
 	// can browse this in the log window
-	console.log("pressed",e);
-	console.log("pressed="+e.keyCode+" shift="+e.shiftKey);
+	log("pressed",e);
+	log("pressed="+e.keyCode+" shift="+e.shiftKey);
 	if(e.keyCode==8 && globstr.length>0){
 	    globstr = globstr.substring(0, globstr.length-1);
 	} else {
@@ -29,7 +32,6 @@
 	change_text(globstr);
 	return false;
     }
-
 
     mk_canvas = function(o) {
 	var x = document.createElementNS(svg_ns, 'svg');
@@ -63,7 +65,7 @@
     };
 
     key1 = function(evt){
-	console.log("key1");
+         log("key1");
     }
 
     buttonClicked = function(evt) {
@@ -82,8 +84,8 @@
     };
 
     keypress = function(evt) {
-	// var x = evt.target;
-	console.log("pressed");
+	var x = evt.target;
+	log("keypress");
     }
 
     mk_text = function(o) {
@@ -107,13 +109,13 @@
 	text.textContent=x;
     }
 
-
     window.onload = function() {
-	svg = mk_canvas({width:800, height:200, color:'#ffeecc',id:1}),
-	c = document.body.appendChild(svg);
+	svg = mk_canvas({width:800, height:500, color:'#ffeecc',id:1}),
+	c = document.getElementById("marker").appendChild(svg);
 	c.appendChild(mk_rect({}));
 	text = mk_text({x:250,y:50, size:24, str:"Hello Joe"})
 	c.appendChild(text);
+
 	var fo = document.createElementNS(svg_ns,"foreignObject");
 	fo.setAttribute("x", 100);
 	fo.setAttribute("y", 100);
@@ -126,26 +128,54 @@
 	n.setAttribute('value','click me');
 	n.setAttribute('name','joe');
 	fo.appendChild(n);
-	console.log("fo=",fo);
-	console.log("n=",n);
+	log("fo=",fo);
+	log("n=",n);
+
+	// add a foreign text object
+	var fo = document.createElementNS(svg_ns,"foreignObject");
+	fo.setAttribute("x", 200);
+	fo.setAttribute("y", 100);
+	fo.setAttribute("width", 400);
+	fo.setAttribute("height",500);
+	svg.appendChild(fo);
+	var n = document.createElement('div');
+	fo.appendChild(n);
+	n.innerHTML = "<p>Hello <span id='a1'>(I'm Red <br>Times 48)</span> brave "
+	+ "new world";
+	y = document.getElementById("a1");
+	y.style.color="red";
+	y.style['font-family'] = "Times";
+	y.style['font-size'] = "48pt";
     }
 
 
     function drag(evt)
     {
 	var t = evt.target;
-	// console.log("drag="+t);
+	log("drag="+t);
     }
-
-
 </script>
 
+
 <body>
+<h2>SVT canvas testbed</h2>
+<div id="marker"></div>
+
 <h2>Unsolved Problems</h2>
 <ul>
 <li>When I press backspace I change pages ... seems ok now ...
-<li>Code to add a foreign object (button) does not work (why)
+<li><strike>Code to add a foreign object (button) does not work (why)</strike>
+<li>In firefox the red time 48 point text has not changed size. This works
+ok in chrome</li>
+
 </ul>
+
+<h2>To do</h2>
+<ul>
+<li><strike>Add formatted text to canvas as foreign object</strike></li>
+<li>Add red draggable circle</li>
+</ul>
+
 
 <h2>refs</h2>
 <ul>
@@ -157,5 +187,7 @@ kevlindev tutorials</a>
 
 <button onclick="change_text('new')">change text</button>
 
+<h2>Log</h2>
+<div id="log"></div>
 
 </body>
