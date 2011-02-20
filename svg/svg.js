@@ -200,11 +200,9 @@ function SVG(pageId){
 	    case "configure":  C.configure(o);        break;
 	    default: alert("bad o.cmd ="+o.cmd);
 	    };
-	    // log("i="+i+" type="+o.cmd);
-	    // log("i="+i+" o.clickable = "+o.clickable);
-	    // val.setAttribute("id", o.id);
 	    if(o.clickable){
-		log("clickable "+o.id + "val="+val);
+		log("clickable "+o.id + "val="+o.msg);
+		val.setAttribute("message", D(o.msg, "void"));
 		val.addEventListener("mousedown", 
 				     function(evt){was_clicked(evt)},
 				     false);
@@ -215,8 +213,12 @@ function SVG(pageId){
     function was_clicked(evt)
     {
 	obj = evt.target;
-	var id = obj.getAttribute("id");
-	svg_event({pageid:C.pageId, id:id, type:"clicked"});
+	var id  = obj.getAttribute("id");
+	var msg  = obj.getAttribute("message");
+	var str = "clicked?page=" +
+	    "&id=" + escape(id) +
+	    "&msg=" + escape(msg);
+	svg_event(str); 
     };
 
     function mouse_down(evt)

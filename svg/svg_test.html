@@ -1,6 +1,10 @@
 <script src="svg.js"></script>
 <script>
 
+  function svg_event(x){
+	log("event:" + x);
+  }
+    
   function log(x){
       document.getElementById("logger").innerHTML += x + "<br>";
   }
@@ -9,8 +13,9 @@
       var cmds = 
 	  [
 	      {cmd:"mk_canvas",id:1, width:800, ht:500, color:"#acacac"},
-	      {cmd:"mk_rect", parent:1, id:2, x:10, y:10,
-	       width:100, ht:50, color:"red"},
+	      {cmd:"mk_rect", parent:1, id:2, x:10, y:10, width:100, ht:50, color:"red"},
+	      {cmd:"mk_rect", parent:1, id:22, x:110, y:10, width:100, ht:30, color:"pink",
+	       clickable:true, msg:"pinkclick"},
 	      {cmd:"mk_circle", parent:1, x:30, y:90, r:20, color:"black"},
 	      {cmd:"mk_text", parent:1, x:60, y:160, size:8, str:"Hello",
 	       font:"Times"},
@@ -48,5 +53,18 @@
     <li>Blue drag circle</li>
     <li>Draggable image</li>
     <div id="a1"></div>
+    <h2>Notes</h2>
+    <p>Q: How should we interact with the svg canvas?
+    <br>A: By sending JSON messages.
+    <p>Q: What objects are clickabkle?
+    <br>A: Only buttons. If we can make anthing clickabkle then it
+    will not be obvious.
+    <p>Q: What objects are draggable?
+    <br>A: Only drag squares. Again it should be obvious what objects are draggable.
+    <p>Q: What are the drag methods?
+    <br>A: on_drag_start/on_moved/on_dropped
+    
+    
     <div id="logger"></div>
+    
 </body>
