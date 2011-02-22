@@ -1,0 +1,75 @@
+<style>
+
+.win {
+  background-color: #feabcd;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 0px;
+  position: absolute;
+}
+
+.title {
+  background-color: blue;
+  color: #ffffff;
+  padding: 2px 1em 2px 1em;
+}
+
+.content {
+  padding: 1em;
+}
+
+</style>
+<script>
+
+var win = new Object();
+win.zIndex = 0;
+
+function mouseDown(event, id) {
+    var id, x, y;
+    win.id = document.getElementById(id);
+    x = event.clientX + window.scrollX;
+    y = event.clientY + window.scrollY;
+    win.cursorStartX = x;
+    win.cursorStartY = y;
+    win.elStartLeft  = parseInt(win.id.style.left, 10);
+    win.elStartTop   = parseInt(win.id.style.top,  10);
+    win.id.style.zIndex = 100;
+    document.addEventListener("mousemove", mouseMoved,   true);
+    document.addEventListener("mouseup",   mouseUp, true);
+    event.preventDefault();
+}
+
+function mouseMoved(event) {
+    var x, y;
+    x = event.clientX + window.scrollX;
+    y = event.clientY + window.scrollY;
+    win.id.style.left = (win.elStartLeft + x - win.cursorStartX) + "px";
+    win.id.style.top  = (win.elStartTop  + y - win.cursorStartY) + "px";
+    event.preventDefault();
+}
+
+function mouseUp(event) {
+    win.id.style.zIndex = 0;
+    document.removeEventListener("mousemove", mouseMoved,   true);
+    document.removeEventListener("mouseup",   mouseUp, true);
+}
+</script>
+
+<div id="box1" class="win" style="left:400px;top:150px;zindex:0">
+  <div class="title" style="width:150;height:20px;"
+       onmousedown="mouseDown(event, 'box1')">Window title</div>
+  <div class="content" style="width:150;">
+    This is the content of this window
+</div> 
+</div>
+
+
+<div id="box2" class="win" style="left:700px;top:150px;zindex:0">
+  <div class="title" style="width:12em;"
+        onmousedown="mouseDown(event, 'box2')">Window title</div>
+  <div class="content" style="width:12em;">
+    The quick brown rat ran over the lazy cat.
+</div>
+</div>
+
+
