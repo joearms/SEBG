@@ -1,5 +1,17 @@
 <style>
 
+
+.resize {
+	 width: 12px;
+	 position: absolute;
+	 bottom: 0;
+	 right: 0;
+	 cursor: se-resize;
+	 background: red;
+	 height:12px;
+}
+
+
 .win {
   background-color: #feabcd;
   border: 1px solid #000000;
@@ -11,6 +23,7 @@
 .title {
   background-color: blue;
   color: #ffffff;
+    cursor: move;
   padding: 2px 1em 2px 1em;
 }
 
@@ -21,55 +34,80 @@
 </style>
 <script>
 
-var win = new Object();
-win.zIndex = 0;
+  var win = new Object();
+  win.zIndex = 0;
 
-function mouseDown(event, id) {
-    var id, x, y;
-    win.id = document.getElementById(id);
-    x = event.clientX + window.scrollX;
-    y = event.clientY + window.scrollY;
-    win.cursorStartX = x;
-    win.cursorStartY = y;
-    win.elStartLeft  = parseInt(win.id.style.left, 10);
-    win.elStartTop   = parseInt(win.id.style.top,  10);
-    win.id.style.zIndex = 100;
-    document.addEventListener("mousemove", mouseMoved,   true);
-    document.addEventListener("mouseup",   mouseUp, true);
-    event.preventDefault();
-}
+  function resizeStart(event, id) {
+      win.id = document.getElementById(id);
+      win.x = event.clientX + window.scrollX;
+      win.y = event.clientY + window.scrollY;
+      win.width  = parseInt(win.id.style.width, 10);
+      win.ht   = parseInt(win.id.style.height,  10);
+      win.id.style.zIndex = 100;
+      document.addEventListener("mousemove", resizeMoved,   true);
+      document.addEventListener("mouseup",   resizeUp, true);
+      event.preventDefault();
+  }      
 
-function mouseMoved(event) {
-    var x, y;
-    x = event.clientX + window.scrollX;
-    y = event.clientY + window.scrollY;
-    win.id.style.left = (win.elStartLeft + x - win.cursorStartX) + "px";
-    win.id.style.top  = (win.elStartTop  + y - win.cursorStartY) + "px";
-    event.preventDefault();
-}
+  function moveStart(event, id) {
+      win.id = document.getElementById(id);
+      win.x = event.clientX + window.scrollX;
+      win.y = event.clientY + window.scrollY;
+      win.left  = parseInt(win.id.style.left, 10);
+      win.top   = parseInt(win.id.style.top,  10);
+      win.id.style.zIndex = 100;
+      document.addEventListener("mousemove", moveMoved,   true);
+      document.addEventListener("mouseup",   moveUp, true);
+      event.preventDefault();
+  }
 
-function mouseUp(event) {
-    win.id.style.zIndex = 0;
-    document.removeEventListener("mousemove", mouseMoved,   true);
-    document.removeEventListener("mouseup",   mouseUp, true);
-}
+  function resizeMoved(event) {
+      var x, y;
+      x = event.clientX + window.scrollX;
+      y = event.clientY + window.scrollY;
+      win.id.style.width   = (win.width + x - win.x) + "px";
+      win.id.style.height  = (win.ht  + y - win.y) + "px";
+      event.preventDefault();
+  }
+
+  function moveMoved(event) {
+      var x, y;
+      x = event.clientX + window.scrollX;
+      y = event.clientY + window.scrollY;
+      win.id.style.left = (win.left + x - win.x) + "px";
+      win.id.style.top  = (win.top  + y - win.y) + "px";
+      event.preventDefault();
+  }
+  
+  function moveUp(event) {
+      win.id.style.zIndex = 0;
+      document.removeEventListener("mousemove", moveMoved,   true);
+      document.removeEventListener("mouseup",   moveUp, true);
+  }
+
+  function resizeUp(event) {
+      win.id.style.zIndex = 0;
+      document.removeEventListener("mousemove", resizeMoved,   true);
+      document.removeEventListener("mouseup",   resizeUp, true);
+  }
 </script>
 
-<div id="box1" class="win" style="left:400px;top:150px;zindex:0">
-  <div class="title" style="width:150;height:20px;"
-       onmousedown="mouseDown(event, 'box1')">Window title</div>
-  <div class="content" style="width:150;">
+<div id="box1" class="win" style="left:400px;top:250px;width:150;height:100;zindex:0">
+    <div class="title" onmousedown="moveStart(event, 'box1')">Window title</div>
+    <div class="content">
     This is the content of this window
-</div> 
+    </div>
+    <div class="resize" onmousedown="resizeStart(event, 'box1')"></div> 
 </div>
 
 
-<div id="box2" class="win" style="left:700px;top:150px;zindex:0">
-  <div class="title" style="width:12em;"
-        onmousedown="mouseDown(event, 'box2')">Window title</div>
-  <div class="content" style="width:12em;">
+    <div id="box2" class="win" style="left:700px;top:150px;width:300;height:100;zindex:0">
+  <div class="title"
+        onmousedown="moveStart(event, 'box2')">Window title</div>
+  <div class="content">
     The quick brown rat ran over the lazy cat.
 </div>
+    <div class="resize" onmousedown="resizeStart(event, 'box2')"></div> 
 </div>
 
 
